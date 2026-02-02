@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="CanvasApp.AppHost/CanvasApp.AppHost.csproj" />
+  <Project Path="CanvasApp.Server/CanvasApp.Server.csproj" />
+  <Project Path="frontend/frontend.esproj">
+    <Build />
+    <Deploy />
+  </Project>
+</Solution>
