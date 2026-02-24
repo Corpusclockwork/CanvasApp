@@ -3,14 +3,22 @@ import aspireLogo from '/Aspire.png'
 import './App.css'
 
 interface WeatherForecast {
-  date: string
-  temperatureC: number
-  temperatureF: number
-  summary: string
+    date: string
+    temperatureC: number
+    temperatureF: number
+    summary: string
+}
+
+interface Canvas {
+    canvasName: string
+    dateCreated: string
+    publicCanEdit: boolean
+    publicCanView: boolean
 }
 
 function App() {
   const [weatherData, setWeatherData] = useState<WeatherForecast[]>([])
+  const [canvasData, setCanvasData] = useState<Canvas[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [useCelsius, setUseCelsius] = useState(false)
@@ -21,13 +29,21 @@ function App() {
     
     try {
       const response = await fetch('/api/weatherforecast')
+      const canvasresponse = await fetch('/api/canvas')
       
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       
-      const data: WeatherForecast[] = await response.json()
-      setWeatherData(data)
+      const data: WeatherForecast[] = await response.json();
+      console.log(data);
+      setWeatherData(data);
+
+
+       const canvasData: Canvas[] = await canvasresponse.json();
+       console.log(canvasData);
+      setCanvasData(canvasData);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch weather data')
       console.error('Error fetching weather forecast:', err)
@@ -159,6 +175,9 @@ function App() {
           </div>
         </section>
       </main>
+      <div>
+        {canvasData.length}
+      </div>
 
       <footer className="app-footer">
         <nav aria-label="Footer navigation">

@@ -1,7 +1,11 @@
+using CanvasApp.Server.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
+
+// Add EntityFrameworkCore so we can use the postgres db in this solution 
+builder.AddNpgsqlDbContext<CanvasAppContext>(connectionName: "canvasappdb");
 
 // Add services to the container.
 builder.Services.AddProblemDetails();

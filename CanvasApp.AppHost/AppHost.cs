@@ -1,11 +1,17 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var postgres = builder.AddPostgres("postgres")
+var postgresPassword = builder.AddParameter("postgresql-password", secret: true);
+
+var postgres = builder.AddPostgres("postgres", password: postgresPassword)
     .WithHostPort(5433)
     .WithPgAdmin(pgAdmin =>
     {
         pgAdmin.WithHostPort(5051);
     });
+    
+    // .WithLifetime(ContainerLifetime.Persistent); 
+    // we only want to add the line above back in when I am seeding data and adding tables correctly
+    // until then it's nice having a clean slate each time
 
 var postgresdb = postgres.AddDatabase("canvasappdb");
 
