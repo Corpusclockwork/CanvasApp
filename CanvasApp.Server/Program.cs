@@ -1,13 +1,16 @@
 using CanvasApp.Server.Data;
+using CanvasApp.Server.Endpoints;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire client integrations.
 builder.AddServiceDefaults();
 
-// Add EntityFrameworkCore so we can use the postgres db in this solution 
-builder.AddNpgsqlDbContext<CanvasAppContext>(connectionName: "canvasappdb");
+builder.AddSqlServerDbContext<CanvasAppContext>(connectionName: "database");
+builder.AddAzureBlobServiceClient(connectionName: "blobs");
 
 // Add services to the container.
+builder.Services.AddSignalR();
 builder.Services.AddProblemDetails();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -40,6 +43,9 @@ api.MapGet("weatherforecast", () =>
     return forecast;
 })
 .WithName("GetWeatherForecast");
+
+app.MapCanvasEndpoints();
+app.MapHub<ImageBlobEndpoints>("/canvasblobs");
 
 app.MapDefaultEndpoints();
 

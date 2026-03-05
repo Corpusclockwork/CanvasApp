@@ -1,25 +1,19 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var postgresPassword = builder.AddParameter("postgresql-password", secret: true);
+builder.AddAzureContainerAppEnvironment("AzureContainerNew");
+var azureStorage = builder.AddAzureStorage("canvasappstorageaccount")
+    .AddBlobs("blobs");
 
-var postgres = builder.AddPostgres("postgres", password: postgresPassword)
-    .WithHostPort(5433)
-    .WithPgAdmin(pgAdmin =>
-    {
-        pgAdmin.WithHostPort(5051);
-    });
-    
-    // .WithLifetime(ContainerLifetime.Persistent); 
-    // we only want to add the line above back in when I am seeding data and adding tables correctly
-    // until then it's nice having a clean slate each time
-
-var postgresdb = postgres.AddDatabase("canvasappdb");
+var azureSql = builder.AddAzureSqlServer("azuresql")
+    .AddDatabase("database");
 
 var server = builder.AddProject<Projects.CanvasApp_Server>("server")
     .WithHttpHealthCheck("/health")
     .WithExternalHttpEndpoints()
-    .WithReference(postgresdb)
-    .WaitFor(postgresdb);
+    .WithReference(azureStorage)
+    .WithReference(azureSql)
+    .WaitFor(azureStorage)
+    .WaitFor(azureSql);
 
 var webfrontend = builder.AddViteApp("webfrontend", "../frontend")
     .WithReference(server)

@@ -1,18 +1,33 @@
-// import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 
 function Canvas() {
+const [canvasblob, setCanvasblob] = useState(new ArrayBuffer);
+const getCanvasBlob = async () => {
+    try {
+        const response =  await (await fetch('/canvasblob/{id}')).json()
+        setCanvasblob(response);
+    } catch {
 
-// const [username, setUsername] = useState("");
-// const [password, setPassword] = useState("");
-// const [loginToggle, setLoginToggle] = useState(true);
+    }
+}
+
+const setCanvasBlob = async () => {
+    try {
+        const response =  await (await fetch('/canvasblob/{id}')).json()
+        setCanvasblob(response);
+    } catch {
+
+    }
+}
+
+useEffect(() => {
+    getCanvasBlob()
+  }, [])
 
 return (
     <>
-    <div>
-        Login
-    </div>
-    <div>
-        Sign up
+    <div 
+    onClick={()=> setCanvasBlob}>
     </div>
     </>
 )
