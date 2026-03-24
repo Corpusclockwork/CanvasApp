@@ -8,7 +8,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 function App() {
   return (
     <>
-        <div className='min-h-screen pb-12' style={{backgroundColor: '#0E1F40', color:'white'}} >
+        <div className='min-h-screen bg-[#0E1F40] text-white' >
             <Router>
                 <Routes>
                     <Route path="/" element={<InitialPage/>} />
@@ -19,9 +19,6 @@ function App() {
                 </Routes>
             </Router>
         </div>
-        <footer className='fixed inset-x-0 bottom-0 p-4' style={{backgroundColor: "lightblue"}}>
-            Copyright © 2026 - present. Lamis McDowall-Rose 
-        </footer>
     </>
   )
 }

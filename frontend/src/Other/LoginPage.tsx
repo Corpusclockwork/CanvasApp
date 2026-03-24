@@ -1,6 +1,5 @@
 // import { useState, useEffect } from 'react'
 import { NavLink } from 'react-router-dom';
-import './LoginPageSignInPage.css';
 
 function LoginPage() {
 
@@ -11,22 +10,22 @@ function LoginPage() {
 return (
     <div className="flex items-center justify-center h-screen">
         <div>
-            <div className="titleTextContainer flex justify-center">
-                <div className="activeLoginSignUpTitle  text-[30px] px-4 mx-4">
+            <div className="flex justify-center">
+                <div className="bg-[#D9D9D9] text-black text-[30px] px-4 mx-4">
                     <NavLink to='/login'>Login</NavLink>
                 </div>
-                <div className="inactiveLoginSignUpTitle text-[30px] px-4 mx-4">
+                <div className="bg-[#D9D9D9] text-[30px] px-4 mx-4">
                     <NavLink to='/signup'>Sign up</NavLink>
                 </div>  
             </div>  
-            <div className="mainTextContainer">
-                <div className="usernameContainer flex justify-center">
-                    <div className="usernameTextBox px-4">Username:</div>
-                    <div className="enterUsernameBox">Enter Username here</div>
+            <div>
+                <div className="flex justify-center">
+                    <div className="px-4">Username:</div>
+                    <div className="bg-grey">Enter Username here</div>
                 </div>
-                <div className="passwordContainer flex justify-center">
-                    <div className="passwordTextBox px-4">Password:</div>
-                    <div className="enterPasswordBox"> Enter Password here</div>
+                <div className="flex justify-center">
+                    <div className="px-4">Password:</div>
+                    <div className="bg-grey"> Enter Password here</div>
                 </div>
             </div>
             <div className="flex justify-center">
@@ -34,6 +33,9 @@ return (
             </div>
             <div className="flex justify-center">
                 <NavLink to='/'>Back to Main Page</NavLink>
+            </div>
+            <div className='text-xs text-center'>
+                Copyright © 2026 - present. Lamis McDowall-Rose 
             </div>
         </div>
     </div>
