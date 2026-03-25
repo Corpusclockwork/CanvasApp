@@ -8,7 +8,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 function App() {
   return (
     <>
-        <div className='min-h-screen bg-[#0E1F40] text-white' >
+        <div className='min-h-screen bg-[#3e4b60] text-white' >
             <Router>
                 <Routes>
                     <Route path="/" element={<InitialPage/>} />

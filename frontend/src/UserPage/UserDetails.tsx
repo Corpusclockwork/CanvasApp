@@ -1,14 +1,14 @@
 // import { useState, useEffect } from 'react'
 import { useEffect, useState } from "react";
-import "./UserDetails.css";
 import { NavLink } from "react-router-dom";
+import AddCanvas from "./Modals/AddCanvas";
+import DeleteCanvas from "./Modals/DeleteCanvas";
 function UserDetails() {
 
 interface UserDetails {
     username: String;
     userCanvases: Canvas[];
-    recentCanvasesView: Canvas[];
-    recentCanvasesEdit: Canvas[];
+    sharedCanavases: Canvas[];
 }
 
 interface Canvas {
@@ -19,13 +19,15 @@ interface Canvas {
     collaborators: [];
 }
 
+const [showAddCanvasModal, setShowAddCanvasModal] = useState<boolean>(false);
+const [selectedCanvas, setSelectedCanvas] = useState<String>(""); // might/ will have the change the type at some point
+const [showDeleteCanvasModal, setShowDeleteCanvasModal] = useState<boolean>(false);
 const [toggleTab, setToggleTab] = useState<boolean>(false);
 const [userDetails, setUserDetails] = useState<UserDetails>(
     {
         username: "",
         userCanvases:[],
-        recentCanvasesEdit: [],
-        recentCanvasesView:[]
+        sharedCanavases: [],
     }
 );
 
@@ -35,18 +37,22 @@ useEffect(() =>{
     .then((data) => setUserDetails(data))
 });
 
-function displayCanvasList(canvases: Canvas[]){
+function displayCanvasList(canvases: Canvas[], canDeleteCanvases: boolean){
     return(
-        <>
+        <ul>
             {canvases.map(canvas => (
-                <div> 
+                <li> 
                     <img src={canvas.thumbnail}> </img>
-                    <div> Date Created: {canvas.dateCreated.toDateString()} </div>
-                    <div> Last Edited: {canvas.lastEdited.toDateString()}</div>
-                    <div> Collaborators: {canvas.collaborators}</div>
-                </div>
+                    {canDeleteCanvases &&
+                        <div className='rounded-lg text-center bg-gray' onClick={()=> setShowDeleteCanvasModal(true)}>x</div>
+                    }
+                    <li> Date Created: {canvas.dateCreated.toDateString()} </li>
+                    <li> Last Edited: {canvas.lastEdited.toDateString()}</li>
+                    <li> Collaborators: {canvas.collaborators}</li>
+                    
+                </li>
             ))}
-        </>
+        </ul>
     )
 }
 
@@ -54,59 +60,67 @@ function YourCanvasesTab(){
     if (!toggleTab) {
         return (
             <>
-                <div>
-                    Create a new canvas
+                <div className="flex">
+                    <div className="p-2">Create a new canvas</div> <div className='bg-[#3e4b60] p-2 text-xl leading-none text-white' style= {{clipPath: "circle(30%)"}} onClick={()=> setShowAddCanvasModal(true)}>+</div>
                 </div>
-                <div>
+                <AddCanvas 
+                    username={userDetails.username}
+                    showAddCanvasModal={showAddCanvasModal}
+                    showAddCollaboratorsModal={false}
+                ></AddCanvas>
+                <DeleteCanvas 
+                    showDeleteCanvasModal={showDeleteCanvasModal} 
+                    canvasName={selectedCanvas}>
+                </DeleteCanvas>
+                <div className="p-2">
                     Your Recent Canvases
-                    {displayCanvasList(userDetails.userCanvases)}
+                    {displayCanvasList(userDetails.userCanvases, true)}
                 </div>
             </>
         )
     } else {
         return ( 
-            <>
+            <div className="p-2 flex">
+                <div className="pr-4 py-1">Search for new canvases to join: </div>
                 <div>
-                    <div> View and Edit</div>
-                    {displayCanvasList(userDetails.recentCanvasesView)}
-
+                    <input  placeholder="Enter Canvas Name here" type="text" className="bg-[#808287] rounded-sm text-white p-1"></input>
                 </div>
-                <div>
-                    <div> View Only </div>
-                    {displayCanvasList(userDetails.recentCanvasesEdit)}
-                </div>
-            </>
+                {displayCanvasList(userDetails.sharedCanavases, false)}
+            </div>
         )
     }
 }
 
 return (
-    <div className="grid grid-cols-4 h-screen">
-        <div className="col-span-1 grid">
-            <div className="absolute top-0">
-                <NavLink to='/'>Logout</NavLink>
+    <div className="grid grid-cols-4 h-screen text-[#3e4b60]">
+        <div className="col-span-1 bg-black">
+            <div className="bg-[#D9D9D9] absolute rounded-br-lg absolute top-0 p-2">
+                <NavLink to='/'>Logout &#8617; </NavLink>
             </div>
-           <div className="grid place-self-center">
-                <div className="userPictureContainer place-self-center flex grid aspect-square rounded-full">
-                    <img className="userPicture self-center justify-self-center aspect-square rounded-full"src="/image_placeholder.jpg">
+           <div className="rounded p-2 mt-20">
+                <div>
+                    <img className="self-center" style= {{clipPath: "circle(40%)"}} src="/image_placeholder.jpg">
                     </img>
                 </div>
-                <div className="usernameText text-center">
+                <div className="text-center mt-5 text-white">
                     Username Placeholder 
+                </div>
+                 <div className=' absolute text-xs text-center text-white bottom-0 w-1/4 pr-2 pb-2'>
+                    Copyright © 2026 - present. Lamis McDowall-Rose 
                 </div>
             </div>
         </div>
         <div className="col-span-3">
-            <div className=" flex tabHeaders">
-                <div className="grow-1" onClick={()=> setToggleTab(false)}>
-                    Your Canvases
+            <div className=" flex">
+                <div className={`${toggleTab ? 'bg-[#808287] text-white' : 'bg-[#D9D9D9]'}` +' w-1/2 p-5 rounded-t-lg'} onClick={()=> setToggleTab(false)}>
+                    <h2>Your Canvases</h2> 
                 </div>
-                <div className="grow-1" onClick={()=> setToggleTab(true)}>
-                    Your Recent Canvases
+                <div className={`${toggleTab ? 'bg-[#D9D9D9]' : 'bg-[#808287] text-white'}` +' w-1/2 p-5 rounded-t-lg'} onClick={()=> setToggleTab(true)}>
+                    <h2>Canvases you are a collaborator on</h2>
                 </div>
             </div>
-            <div className="tabBody">
-               {YourCanvasesTab()}
+            <div className="bg-[#D9D9D9]">
+                {YourCanvasesTab()}
             </div>
         </div>
     </div>

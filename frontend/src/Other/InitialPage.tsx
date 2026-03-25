@@ -5,7 +5,7 @@ function InitialPage() {
     <>
         <div className='h-9/10'>
             <header className='flex justify-center py-8'>
-                <div className='w-4/5 text-center'>Welcome to CanvasCollab !</div>
+                <h1 className='w-4/5 text-center text-2xl'>Welcome to CanvasCollab !</h1>
             </header>
             <main className='flex flex-col justify-center'>
                 <div className='flex justify-center'>
@@ -19,12 +19,16 @@ function InitialPage() {
                     </div>
                 </div>
                 <div className='flex justify-center'>
-                    <button className='bg-[#D9D9D9] p-4 py-4 m-4'>
-                        <NavLink to='/login'>Login</NavLink>
-                    </button>
-                    <button className='bg-[#D9D9D9] p-4 py-4 m-4'>
-                        <NavLink to='/signup'>Sign up</NavLink>
-                    </button>
+                    <NavLink to='/login'>
+                        <button className='bg-[#D9D9D9] hover:bg-[#808287] text-[#3e4b60] hover:text-white p-4 py-4 m-4 rounded-sm'>
+                            Login
+                        </button>
+                    </NavLink>
+                    <NavLink to='/signup'>
+                        <button className='bg-[#D9D9D9] hover:bg-[#808287] text-[#3e4b60] hover:text-white p-4 py-4 m-4 rounded-sm'>
+                            Sign up
+                        </button>
+                    </NavLink>
                 </div>
                 <div className='text-xs text-center'>
                     Copyright © 2026 - present. Lamis McDowall-Rose 
