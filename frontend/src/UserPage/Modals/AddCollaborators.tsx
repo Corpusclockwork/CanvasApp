@@ -1,48 +1,71 @@
 import { useState, useEffect } from 'react';
+import type { CollaboratorDetails } from '../UserDetails';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
 
 type AddCollaboratorsProps = {
-    showAddCollaboratorsModal: boolean
+    open: boolean,
+    onClose: () => void,
+    canvasCollaborators: CollaboratorDetails[]
 }
-function AddCollaborators ({showAddCollaboratorsModal}: AddCollaboratorsProps) {
+function AddCollaborators ({open, onClose, canvasCollaborators}: AddCollaboratorsProps) {
 
-const [canvasCollaborators, setCanvasCollaborators] = useState([]);
+const [potentialCollaborators, setPotentialCollaborators] = useState<CollaboratorDetails[]>([]);
 
 
-const getUsersList = async () => {
+const getPotentialCollaboratorsList = async () => {
         try {
-        const response =  await (await fetch('/users/usernames')).json()
-        setCanvasCollaborators(response);
+        const response =  await (await fetch('/users/publicuserdetails')).json()
+        setPotentialCollaborators(response);
     } catch {
 
     }
 }
 
 useEffect(() => {
-        getUsersList();
-    }, [])
+    getPotentialCollaboratorsList();
+}, [])
 
 return (
     <>
-    {showAddCollaboratorsModal && 
-    <div className='top-1 left-0 w-screen h-screen bg-opacity-50 bg-gray-500'>
-        <div className='bg-[#0E1F40] w-auto h-auto p-3 max-w-1/2 max-h-1/2'>
-            <h1>Search</h1>
-            <div className='rounded-sm bg-gray-600'> Search here</div>
-            <div>Results
-
-
-            </div>
-            <li>Canvas Collaborators <div className='rounded-lg text-center bg-gray'>+</div>
+     <Dialog
+        open={open}
+        onClose={onClose}
+    >
+        <DialogTitle id="alert-dialog-title">
+        {"Add Canvas Collaborators"}
+        </DialogTitle>
+        <IconButton
+            aria-label="close"
+            onClick={onClose}
+            sx={() => ({
+            position: 'absolute',
+            right: 8,
+            top: 8
+            })}
+        >
+          <CloseIcon />
+        </IconButton>
+        <DialogContent>
+            <li> Results
+            <ul>
+                {potentialCollaborators.map((canvasCollaborator, index)=> (
+                            <li key={index}> {canvasCollaborator.username}</li>
+                ))}
+            </ul>
+            </li>
+             <li>Canvas Collaborators <div className='rounded-lg text-center bg-gray'>+</div>
                     <ul>
                         {canvasCollaborators.map((canvasCollaborator, index)=> (
-                            <li key={index}> {canvasCollaborator}</li>
+                            <li key={index}> {canvasCollaborator.username}</li>
                         ))}
                     </ul>
-                </li> 
-            <button> Create Canvas</button>
-        </div>  
-    </div>
-    }
+            </li> 
+        </DialogContent>
+    </Dialog>
     </>
 )
 } export default AddCollaborators;

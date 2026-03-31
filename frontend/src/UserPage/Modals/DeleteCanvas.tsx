@@ -1,7 +1,7 @@
 type DeleteCanvasProps = {
 
     showDeleteCanvasModal: boolean,
-    canvasName: String
+    canvasName: string
 }
 
 function DeleteCanvas ({showDeleteCanvasModal, canvasName}: DeleteCanvasProps) {

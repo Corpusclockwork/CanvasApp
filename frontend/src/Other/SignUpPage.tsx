@@ -1,12 +1,42 @@
-// import { useState, useEffect } from 'react'
-
-import { NavLink } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 
 function SignUpPage() {
 
-// const [username, setUsername] = useState("");
-// const [password, setPassword] = useState("");
-// const [loginToggle, setLoginToggle] = useState(true);
+const [username, setUsername] = useState<string>("");
+const [password, setPassword] = useState<string>("");
+const [repeatPassword, setRepeatPassword] = useState<string>("");
+const [passwordsMatch, setPasswordsMatch] = useState<boolean>(true);
+const [usernameInUse, setUsernameInUse] = useState<boolean>(false);
+const [failedToCreate, setFailedToCreate] = useState<boolean>(false);
+
+let navigate = useNavigate();
+
+async function signup(username:string, password:string) {
+    fetch("/signup", {
+        method: "POST",
+        body: JSON.stringify({
+            username,
+            password
+        }),
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+        }
+    })
+    .then((response) => {
+        if(response.ok) {
+            navigate("/user");
+        }
+    })
+    .catch((err) => {
+        if (err.statusCode === 400){
+            setUsernameInUse(true);
+            setFailedToCreate(true)
+            //TODO: the two functions above should only be called if the error code that is returned means that they are true
+        }
+        console.log(err.message);
+    })
+}
 
 return (
    <div className="flex items-center justify-center h-screen">
@@ -22,20 +52,44 @@ return (
             <div className='bg-[#D9D9D9] text-[#3e4b60] rounded-sm py-2'>
                 <div className="flex justify-center m-2">
                     <div className="px-4">Username:</div>
-                    <input  placeholder="Enter Username here" type="text" className="bg-[#808287] rounded-sm text-white p-1"></input>
+                    <input  
+                        value={username}
+                        onChange={e => setUsername(e.target.value)}
+                        placeholder="Enter Username here" 
+                        type="text" 
+                        className="bg-[#808287] rounded-sm text-white p-1">
+                    </input>
                 </div>
                 <div className="flex justify-center m-2">
                     <div className="px-4">Password:</div>
-                    <input placeholder="Enter Password here" type="text" className="bg-[#808287] rounded-sm text-white p-1"></input>
+                    <input 
+                        value={password}
+                        onChange={e => {setPassword(e.target.value); setPasswordsMatch(e.target.value === repeatPassword);}}
+                        placeholder="Enter Password here" 
+                        type="text" 
+                        className="bg-[#808287] rounded-sm text-white p-1">
+                    </input>
                 </div>
-                 <div className="flex justify-center m-2">
+                <div className="flex justify-center m-2">
                     <div className="px-4">Repeat Password:</div>
-                    <input placeholder="Repeat Password here" type="text" className="bg-[#808287] rounded-sm text-white p-1"></input>
+                    <input 
+                        value={repeatPassword}
+                        onChange={e => {setRepeatPassword(e.target.value); setPasswordsMatch(password === e.target.value);}}
+                        placeholder="Repeat Password here" 
+                        type="text" 
+                        className="bg-[#808287] rounded-sm text-white p-1"
+                    ></input>
                 </div>
+                { !passwordsMatch &&
+                    <div className='text-[#fc0000] text-xs text-center'> Passwords do not match !</div>
+                }
+                { usernameInUse &&
+                    <div className='text-[#fc0000] text-xs text-center'> Username already exists</div>
+                }
+                { failedToCreate &&
+                    <div className='text-[#fc0000] text-xs text-center'> Failed to create user</div>
+                }
             </div>
-
-
-
              <div className='flex justify-center'>
                 <NavLink to='/'>
                     <button className='bg-[#D9D9D9] hover:bg-[#808287] text-[#3e4b60] hover:text-white p-4 py-4 m-4 rounded-sm'>
@@ -43,8 +97,11 @@ return (
                     </button>
                 </NavLink>
                 <NavLink to='/user'>
-                    <button className='bg-[#D9D9D9] hover:bg-[#808287] text-[#3e4b60] hover:text-white p-4 py-4 m-4 rounded-sm'>
-                        Login
+                    <button 
+                        disabled= {username === "" || password === "" || repeatPassword === ""}
+                        onClick= {()=> signup(username, password)} 
+                        className= {(username === "" || password === "" || repeatPassword === "") ? "bg-[#808287] text-[#3e4b60] p-4 py-4 m-4 rounded-sm" :'bg-[#D9D9D9] hover:bg-[#808287] text-[#3e4b60] hover:text-white p-4 py-4 m-4 rounded-sm'}>
+                        Sign Up
                     </button>
                 </NavLink>
             </div>

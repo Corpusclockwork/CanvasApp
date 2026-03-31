@@ -3,15 +3,15 @@ import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import AddCanvas from "./Modals/AddCanvas";
 import DeleteCanvas from "./Modals/DeleteCanvas";
-function UserDetails() {
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
-interface UserDetails {
-    username: String;
-    userCanvases: Canvas[];
-    sharedCanavases: Canvas[];
+export interface UserDetails {
+    username: string;
+    userCanvases: CanvasDetails[];
+    sharedCanavases: CanvasDetails[];
 }
 
-interface Canvas {
+export interface CanvasDetails {
     name: string;
     thumbnail: string;
     dateCreated: Date;
@@ -19,8 +19,15 @@ interface Canvas {
     collaborators: [];
 }
 
+export interface CollaboratorDetails {
+    username: string;
+    colour: string
+}
+
+function UserDetails() {
+
 const [showAddCanvasModal, setShowAddCanvasModal] = useState<boolean>(false);
-const [selectedCanvas, setSelectedCanvas] = useState<String>(""); // might/ will have the change the type at some point
+const [selectedCanvas, setSelectedCanvas] = useState<string>(""); // might/ will have the change the type at some point
 const [showDeleteCanvasModal, setShowDeleteCanvasModal] = useState<boolean>(false);
 const [toggleTab, setToggleTab] = useState<boolean>(false);
 const [userDetails, setUserDetails] = useState<UserDetails>(
@@ -37,7 +44,7 @@ useEffect(() =>{
     .then((data) => setUserDetails(data))
 });
 
-function displayCanvasList(canvases: Canvas[], canDeleteCanvases: boolean){
+function displayCanvasList(canvases: CanvasDetails[], canDeleteCanvases: boolean){
     return(
         <ul>
             {canvases.map(canvas => (
@@ -49,7 +56,6 @@ function displayCanvasList(canvases: Canvas[], canDeleteCanvases: boolean){
                     <li> Date Created: {canvas.dateCreated.toDateString()} </li>
                     <li> Last Edited: {canvas.lastEdited.toDateString()}</li>
                     <li> Collaborators: {canvas.collaborators}</li>
-                    
                 </li>
             ))}
         </ul>
@@ -60,14 +66,15 @@ function YourCanvasesTab(){
     if (!toggleTab) {
         return (
             <>
-                <div className="flex">
-                    <div className="p-2">Create a new canvas</div> <div className='bg-[#3e4b60] p-2 text-xl leading-none text-white' style= {{clipPath: "circle(30%)"}} onClick={()=> setShowAddCanvasModal(true)}>+</div>
-                </div>
-                <AddCanvas 
+                <button className="flex"  onClick={()=> setShowAddCanvasModal(true)}>
+                    <div className="p-2">Create a new canvas <AddCircleOutlineIcon></AddCircleOutlineIcon> </div>            
+                </button>
+                <AddCanvas
+                    open={showAddCanvasModal}
+                    onClose={() => setShowAddCanvasModal(false)}
                     username={userDetails.username}
-                    showAddCanvasModal={showAddCanvasModal}
-                    showAddCollaboratorsModal={false}
-                ></AddCanvas>
+                >
+                </AddCanvas>
                 <DeleteCanvas 
                     showDeleteCanvasModal={showDeleteCanvasModal} 
                     canvasName={selectedCanvas}>
@@ -83,7 +90,7 @@ function YourCanvasesTab(){
             <div className="p-2 flex">
                 <div className="pr-4 py-1">Search for new canvases to join: </div>
                 <div>
-                    <input  placeholder="Enter Canvas Name here" type="text" className="bg-[#808287] rounded-sm text-white p-1"></input>
+                    <input  placeholder="Enter CanvasDetails Name here" type="text" className="bg-[#808287] rounded-sm text-white p-1"></input>
                 </div>
                 {displayCanvasList(userDetails.sharedCanavases, false)}
             </div>

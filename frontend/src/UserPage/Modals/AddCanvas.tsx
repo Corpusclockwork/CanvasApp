@@ -1,34 +1,59 @@
 import { useState } from 'react';
 import AddCollaborators from './AddCollaborators';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import CloseIcon from '@mui/icons-material/Close';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import type { CollaboratorDetails } from '../UserDetails';
+import IconButton from '@mui/material/IconButton';
 
 type AddCanvasProps = {
-    username: String,
-    showAddCanvasModal: boolean,
-    showAddCollaboratorsModal: boolean
+    open: boolean,
+    onClose: () => void,
+    username: string
 }
-function AddCanvas ({showAddCanvasModal, username, showAddCollaboratorsModal }: AddCanvasProps) {
 
-const [canvasCollaborators, setCanvasCollaborators] = useState([]);
+function AddCanvas ({ open, onClose, username}: AddCanvasProps) {
+const [canvasCollaborators, setCanvasCollaborators] = useState<CollaboratorDetails[]>([]);
+const [openAddCollaboratorsDialog, setOpenAddCollaboratorsDialog] = useState(false);
 
 return (
-    <>
-    {showAddCanvasModal && 
-    <div className='top-1 left-0 w-screen h-screen bg-opacity-50 bg-gray-500'>
-        <div className='bg-[#0E1F40] w-auto h-auto p-3 max-w-1/2 max-h-1/2'>
-            <h1>Add Canvas</h1>
-            <div className='top-0 right-0' onClick={()=> {showAddCanvasModal = false}}>X</div>
+<>
+    <Dialog
+        open={open}
+        onClose={onClose}
+        color="red"
+    >
+        <DialogTitle id="alert-dialog-title">
+        {"Add Canvas"}
+        </DialogTitle>
+        <IconButton
+            aria-label="close"
+            onClick={onClose}
+            sx={() => ({
+            position: 'absolute',
+            right: 8,
+            top: 8
+            })}
+        >
+          <CloseIcon />
+        </IconButton>
+        <DialogContent>
             <ul>
-                <li>Canvas Creator </li>
+                <li>Canvas Creator: {username} </li>
                 <li>Canvas Name {username}</li>
                 <li>Canvas Size: 1024 x 1024</li>
-                <li>Canvas Collaborators <div className='rounded-lg text-center bg-gray' onClick={()=> {showAddCollaboratorsModal = true}}>+</div>
+                <li onClick={()=> setOpenAddCollaboratorsDialog(true)}> Canvas Collaborators <AddCircleOutlineIcon fontSize="small"></AddCircleOutlineIcon>
                     <ul>
                         {canvasCollaborators.map((canvasCollaborator, index)=> (
-                            <li key={index}> {canvasCollaborator}</li>
+                            <li key={index}> {canvasCollaborator.username}</li>
                         ))}
                     </ul>
-                    <AddCollaborators showAddCollaboratorsModal={showAddCollaboratorsModal}>
-
+                    <AddCollaborators 
+                        open={openAddCollaboratorsDialog}
+                        onClose={() => setOpenAddCollaboratorsDialog(false)}
+                        canvasCollaborators = {canvasCollaborators}>
                     </AddCollaborators>
                 </li> 
                 <li>Public Access
@@ -36,10 +61,8 @@ return (
                 <div>Anyone with the link can view and edit</div> <input type="checkbox"></input> 
                 </li>
             </ul>
-            <button> Create Canvas</button>
-        </div>  
-    </div>
-    }
-    </>
+        </DialogContent>
+    </Dialog>
+</>
 )
 } export default AddCanvas;
