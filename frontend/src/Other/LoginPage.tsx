@@ -79,7 +79,7 @@ return (
                     <button 
                         disabled={username === "" || password === ""}
                         onClick={()=> login(username, password)} 
-                        className={(username === "" || password === "") ? "bg-[#808287] text-[#3e4b60] p-4 py-4 m-4 rounded-sm" :'bg-[#D9D9D9] hover:bg-[#808287] text-[#3e4b60] hover:text-white p-4 py-4 m-4 rounded-sm'}
+                        className={(username === "" || password === "") ? "bg-[#808287] text-[#3e4b60] p-4 py-4 m-4 rounded-sm" :'cursor-pointer bg-[#D9D9D9] hover:bg-[#808287] text-[#3e4b60] hover:text-white p-4 py-4 m-4 rounded-sm'}
                     >
                         Login
                     </button>

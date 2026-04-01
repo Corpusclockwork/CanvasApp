@@ -12,11 +12,11 @@ export interface UserDetails {
 }
 
 export interface CanvasDetails {
-    name: string;
+    canvasName: string;
     thumbnail: string;
     dateCreated: Date;
     lastEdited: Date;
-    collaborators: [];
+    collaborators: CollaboratorDetails[];
 }
 
 export interface CollaboratorDetails {
@@ -55,7 +55,6 @@ function displayCanvasList(canvases: CanvasDetails[], canDeleteCanvases: boolean
                     }
                     <li> Date Created: {canvas.dateCreated.toDateString()} </li>
                     <li> Last Edited: {canvas.lastEdited.toDateString()}</li>
-                    <li> Collaborators: {canvas.collaborators}</li>
                 </li>
             ))}
         </ul>

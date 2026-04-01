@@ -5,6 +5,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 
 type AddCollaboratorsProps = {
     open: boolean,
@@ -35,35 +36,34 @@ return (
         open={open}
         onClose={onClose}
     >
-        <DialogTitle id="alert-dialog-title">
-        {"Add Canvas Collaborators"}
+        <DialogTitle id="alert-dialog-title" sx={{backgroundColor: '#D9D9D9', color:'#3e4b60'}}>
+        {"Add Collaborators"}
         </DialogTitle>
-        <IconButton
-            aria-label="close"
+         <IconButton
             onClick={onClose}
-            sx={() => ({
+            sx={{
             position: 'absolute',
             right: 8,
-            top: 8
-            })}
-        >
+            top: 8,
+            }}
+        >   
           <CloseIcon />
         </IconButton>
-        <DialogContent>
-            <li> Results
-            <ul>
-                {potentialCollaborators.map((canvasCollaborator, index)=> (
-                            <li key={index}> {canvasCollaborator.username}</li>
-                ))}
+        <DialogContent sx={{backgroundColor: '#D9D9D9', color:'#3e4b60'}}>
+            <ul> Results
+                <li>
+                    {potentialCollaborators.map((canvasCollaborator, index)=> (
+                                <li key={index}> {canvasCollaborator.username}</li>
+                    ))}
+                </li>
             </ul>
-            </li>
-             <li>Canvas Collaborators <div className='rounded-lg text-center bg-gray'>+</div>
-                    <ul>
+             <ul>Canvas Collaborators <AddCircleOutlineIcon fontSize="small"></AddCircleOutlineIcon>
+                    <li>
                         {canvasCollaborators.map((canvasCollaborator, index)=> (
                             <li key={index}> {canvasCollaborator.username}</li>
                         ))}
-                    </ul>
-            </li> 
+                    </li>
+            </ul> 
         </DialogContent>
     </Dialog>
     </>
