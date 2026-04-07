@@ -1,11 +1,10 @@
-import { useState } from 'react';
-import AddCollaborators from './AddCollaborators';
+import { useEffect, useState } from 'react';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import CloseIcon from '@mui/icons-material/Close';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { type CanvasDetails, type CollaboratorDetails } from '../UserDetails';
+import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
+import { type CanvasDetails, type BasicUserDetails } from "../../Interfaces"
 import IconButton from '@mui/material/IconButton';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,40 +17,65 @@ type AddCanvasProps = {
 
 function AddCanvas ({ open, onClose, username}: AddCanvasProps) {
         
-    const [canvasCollaborators, setCanvasCollaborators] = useState<CollaboratorDetails[]>([]);
+    
     const [canvasName, setCanvasName] = useState<string>("");
-    const [openAddCollaboratorsDialog, setOpenAddCollaboratorsDialog] = useState(false);
     const [canvasNameAlreadyExists, setCanvasNameAlreadyExists] = useState(false);
+    const [canvasCollaborators, setCanvasCollaborators] = useState<BasicUserDetails[]>([]);
+    const [potentialCollaborators, setPotentialCollaborators] = useState<BasicUserDetails[]>([]);
+    const [searchPotentialCollaborators, setSearchPotentialCollaborators] = useState<string>("");
 
     let navigate = useNavigate();
 
-    function createCanvas() {
+    async function createCanvas() {
         const canvasDetailsToPut :CanvasDetails = {
-            canvasName: '',
+            id: -1,
+            name: '',
             thumbnail: '',
             dateCreated: new Date(),
             lastEdited: new Date(),
-            collaborators: canvasCollaborators
+            ownerId: 1,
+            collaboratorIds: []
         };
         fetch("/canvases/add", {
-        method: "PUT",
-        body: JSON.stringify({canvasDetailsToPut}),
-        headers: {
-            'Content-type': 'application/json; charset=UTF-8',
-        }
-    })
-    .then((response) => {
-        if(response.ok) {
-            navigate("/canvas/{id}");
-        }
-    })
-    .catch((err) => {
-        if (err.statusCode === 400){
-            setCanvasNameAlreadyExists(true)
-        }
-        console.log(err.message);
-    })
+            method: "PUT",
+            body: JSON.stringify({canvasDetailsToPut}),
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then((response) => {
+            if(response.ok) {
+                navigate("/canvas/{id}");
+            }
+        })
+        .catch((err) => {
+            if (err.statusCode === 400){
+                setCanvasNameAlreadyExists(true)
+            }
+            console.log(err.message);
+        })
     }
+
+    async function getPotentialCollaborators() {
+        fetch("/basicuserdetails", {
+            method: "GET",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const userObjects = data.parse();
+            userObjects.forEach((userObject: BasicUserDetails) => setPotentialCollaborators([...potentialCollaborators, userObject]));
+        })
+        .catch((err) => {
+            console.log(err.message);
+        })
+    }
+
+    useEffect(()=> {
+
+    });
 
 return (
 <>
@@ -90,35 +114,34 @@ return (
                 <li className='flex m-2' ><div className='font-bold mr-2'>Canvas Size: </div>1024 x 1024</li>
                 <li 
                     className='bg-[#808287] rounded-sm p-2 m-2 text-white' 
-                    onClick={()=> setOpenAddCollaboratorsDialog(true)}
                 > 
-                    Add Canvas Collaborators 
-                    <AddCircleOutlineIcon fontSize="small"></AddCircleOutlineIcon>
-                    <ul>
+                    Add Canvas Collaborators: 
+                    <input  
+                        value={searchPotentialCollaborators}
+                        onChange={e => {
+                            setSearchPotentialCollaborators(e.target.value); 
+                            if(e.target.value.length > 0){
+                                getPotentialCollaborators();
+                            }
+                        }}
+                        placeholder="Search for collaborators here" 
+                        type="text" 
+                        className="bg-[#808287] rounded-sm text-white p-1 m-1 m-2">
+                    </input>
+                    <ul className='overflow-y-scroll h-20 border-2 border-solid'> 
+                        {potentialCollaborators.map((canvasCollaborator, index) => (
+                            <li onClick={() => setCanvasCollaborators([...canvasCollaborators, canvasCollaborator]) } className={'text-'+ canvasCollaborator.colour} key={index}> {canvasCollaborator.username}</li>
+                        ))}
+                    </ul>
+                </li> 
+                <li className='m-2'>
+                    <ul className='font-bold'>Canvas Collaborators:
                         {canvasCollaborators.map((canvasCollaborator, index)=> (
                             <li key={index}> {canvasCollaborator.username}</li>
                         ))}
-                    </ul>
-
-                    { openAddCollaboratorsDialog &&
-                    <div>
-                          <ul> Results
-                            <li>
-                                {potentialCollaborators.map((canvasCollaborator, index)=> (
-                                            <li key={index}> {canvasCollaborator.username}</li>
-                                ))}
-                            </li>
-                        </ul>
-                        <ul>Canvas Collaborators <AddCircleOutlineIcon fontSize="small"></AddCircleOutlineIcon>
-                                <li>
-                                    {canvasCollaborators.map((canvasCollaborator, index)=> (
-                                        <li key={index}> {canvasCollaborator.username}</li>
-                                    ))}
-                                </li>
-                        </ul> 
-                    </div>
-                    }
-                </li> 
+                        <RemoveCircleOutlineIcon></RemoveCircleOutlineIcon>
+                    </ul> 
+                </li>
                 <li className='m-2'><div className='font-bold'>Public Access</div>
                 <div>Anyone with the link can view <input type="checkbox"></input></div> 
                 <div>Anyone with the link can view and edit <input type="checkbox"></input></div>

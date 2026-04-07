@@ -1,33 +1,59 @@
 import { useState, useEffect } from 'react';
-import type { CollaboratorDetails } from '../UserDetails';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import CloseIcon from '@mui/icons-material/Close';
 import IconButton from '@mui/material/IconButton';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import { type BasicUserDetails } from "../../Interfaces"
 
 type AddCollaboratorsProps = {
     open: boolean,
     onClose: () => void,
-    canvasCollaborators: CollaboratorDetails[]
+    canvasId: number
 }
-function AddCollaborators ({open, onClose, canvasCollaborators}: AddCollaboratorsProps) {
+function AddCollaborators ({open, onClose, canvasId}: AddCollaboratorsProps) {
 
-const [potentialCollaborators, setPotentialCollaborators] = useState<CollaboratorDetails[]>([]);
+    const [canvasCollaborators, setCanvasCollaborators] = useState<BasicUserDetails[]>([]);
+    const [potentialCollaborators, setPotentialCollaborators] = useState<BasicUserDetails[]>([]);
 
-
-const getPotentialCollaboratorsList = async () => {
-        try {
-        const response =  await (await fetch('/users/publicuserdetails')).json()
-        setPotentialCollaborators(response);
-    } catch {
-
+    async function getPotentialCollaborators() {
+        fetch("/basicuserdetails", {
+            method: "GET",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const userObjects = data.parse();
+            userObjects.forEach((userObject: BasicUserDetails) => setPotentialCollaborators([...potentialCollaborators, userObject]));
+        })
+        .catch((err) => {
+            console.log(err.message);
+        })
     }
-}
+
+    async function getCollaboratorsForCanvas(canvasId: number) {
+        fetch(`/canvascollaborators/canvasid=${canvasId}`, {
+            method: "GET",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const userObjects = data.parse();
+            userObjects.forEach((userObject: BasicUserDetails) => setCanvasCollaborators([...canvasCollaborators, userObject]));
+        })
+        .catch((err) => {
+            console.log(err.message);
+        })
+    }
 
 useEffect(() => {
-    getPotentialCollaboratorsList();
+    getCollaboratorsForCanvas(canvasId);
+    getPotentialCollaborators();
 }, [])
 
 return (

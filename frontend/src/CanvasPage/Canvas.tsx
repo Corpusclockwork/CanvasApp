@@ -2,39 +2,60 @@ import { useState, useEffect, useRef } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Scrollbar } from 'react-scrollbars-custom';
 import { Tooltip } from 'react-tooltip'
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import AddCollaborators from '../UserPage/Modals/AddCollaborators';
 
+import { type CanvasDetails, type BasicUserDetails } from "../Interfaces";
 
 function Canvas() {
     const [canvasblob, setCanvasblob] = useState(new ArrayBuffer(1024*1024));
-    const [canvasCollaborators, setCanvasCollaborators] = useState([]);
-    const [canvasOwner, setCanvasOwner] = useState("");
+    const [canvasDetails, setCanvasDetails] = useState<CanvasDetails>({} as CanvasDetails);
+
+    const [canvasOwner, setCanvasOwner] = useState<string>("");
+    const [canvasCollaborators, setCanvasCollaborators] = useState<BasicUserDetails[]>([]);
+    
     const canvasObjectId = useRef<HTMLCanvasElement>(null);
     const [leftDropdown, setLeftDropdown] = useState(false);
     const [rightDropdown, setRightDropdown] = useState(false);
+    const [showAddCollaboratorsModal, setShowAddCollaboratorsModal] = useState(false);
+
     // const colorsList = ["black", "red", "green", "blue", "white"];
 
     // var imageData = new ImageData(new Uint8ClampedArray(canvasblob), 1024, 1024);
     // var ctx = canvasObjectId.getContext("2d");
     // ctx?.putImageData(imageData, 0, 0);
 
-   const getCollaborators = async () => {
-         try {
-            const response =  await (await fetch('/canvas/details/collaborators')).json()
-            setCanvasCollaborators(response);
-            console.log(canvasblob);
-        } catch {
-
-        }
+    async function getCollaboratorsForCanvas(canvasId: number) {
+        fetch(`/canvasid=${canvasId}/canvascollaborators`, {
+            method: "GET",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const userObjects = data.parse();
+            userObjects.forEach((userObject: BasicUserDetails) => setCanvasCollaborators([...canvasCollaborators, userObject]));
+        })
+        .catch((err) => {
+            console.log(err.message);
+        })
     }
 
-    const getCanvasOwner = async () => {
-         try {
-            const response =  await (await fetch('/canvas/details/owner')).json()
-            setCanvasOwner(response);
-            console.log(canvasblob);
-        } catch {
-
-        }
+    async function getOwnerForCanvasName(canvasId: number) {
+        fetch(`/canvasid=${canvasId}/canvasowner`, {
+            method: "GET",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            setCanvasOwner(data);
+        })
+        .catch((err) => {
+            console.log(err.message);
+        })
     }
 
     const setCanvasBlob = async () => {
@@ -47,10 +68,37 @@ function Canvas() {
         }
     }
 
+    async function getCanvasDetails(){
+        fetch("/canvasId=1", {
+            method: "GET",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const canvasObject = data.parse();
+            setCanvasDetails({
+                id: canvasObject.id,
+                name: canvasObject.name,
+                thumbnail: canvasObject.thumbnail,
+                dateCreated: canvasObject.dateCreated,
+                lastEdited: canvasObject.lastEdited,
+                ownerId: canvasObject.ownerId,
+                collaboratorIds: canvasObject.collaboratorIds
+            })
+
+            getCollaboratorsForCanvas(canvasDetails.id);
+            getOwnerForCanvasName(canvasDetails.id);
+        })
+        .catch((err) => {
+            console.log(err.message);
+        })
+    }
+
     useEffect(() => {
+        getCanvasDetails();
         setCanvasBlob();
-        getCollaborators();
-        getCanvasOwner();
     }, [])
     
     return (
@@ -109,14 +157,21 @@ function Canvas() {
                             <ul>
                                 {
                                     canvasCollaborators.map((canvasCollaborator, index) => (
-                                        <li className="hover:bg-gray-700" key={index}>
-                                            {canvasCollaborator}
+                                        <li className={"hover:bg-gray-700 text-$["+ canvasCollaborator.colour + "]"} key={index}>
+                                            {canvasCollaborator.username}
                                         </li>
                                     ))
                                 }
                             </ul>
                         </li>
-                        <li className='hover:bg-gray-600 rounded-sm p-1'>Add a Collaborator <div className='rounded-lg text-center bg-gray'>+</div></li>
+                        <li className='hover:bg-gray-600 rounded-sm p-1'>Add a Collaborator <AddCircleOutlineIcon></AddCircleOutlineIcon></li>
+                        <AddCollaborators
+                            open={showAddCollaboratorsModal}
+                            onClose={() => setShowAddCollaboratorsModal(false)}
+                            canvasId={canvasDetails.id}
+                        >
+                            
+                        </AddCollaborators>
                         <li className='hover:bg-gray-600 rounded-sm p-1'>Canvas owner
                             <div className="hover:bg-gray-700">
                                 {canvasOwner}

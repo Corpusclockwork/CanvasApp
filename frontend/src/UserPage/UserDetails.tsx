@@ -4,25 +4,8 @@ import { NavLink } from "react-router-dom";
 import AddCanvas from "./Modals/AddCanvas";
 import DeleteCanvas from "./Modals/DeleteCanvas";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-
-export interface UserDetails {
-    username: string;
-    userCanvases: CanvasDetails[];
-    sharedCanavases: CanvasDetails[];
-}
-
-export interface CanvasDetails {
-    canvasName: string;
-    thumbnail: string;
-    dateCreated: Date;
-    lastEdited: Date;
-    collaborators: CollaboratorDetails[];
-}
-
-export interface CollaboratorDetails {
-    username: string;
-    colour: string
-}
+import EditSquareIcon from '@mui/icons-material/EditSquare';
+import { type UserDetails, type CanvasDetails } from "../Interfaces";
 
 function UserDetails() {
 
@@ -30,19 +13,88 @@ const [showAddCanvasModal, setShowAddCanvasModal] = useState<boolean>(false);
 const [selectedCanvas, setSelectedCanvas] = useState<string>(""); // might/ will have the change the type at some point
 const [showDeleteCanvasModal, setShowDeleteCanvasModal] = useState<boolean>(false);
 const [toggleTab, setToggleTab] = useState<boolean>(false);
-const [userDetails, setUserDetails] = useState<UserDetails>(
-    {
-        username: "",
-        userCanvases:[],
-        sharedCanavases: [],
-    }
-);
 
-useEffect(() =>{
-    fetch("/userDetails/user=1")
-    .then((response)=> response.json())
-    .then((data) => setUserDetails(data))
-});
+const [userDetails, setUserDetails] = useState<UserDetails>({} as UserDetails);
+const [userOwnedCanvasDetails, setUserOwnedCanvasDetails] = useState<CanvasDetails[]>([]);
+const [userCollabCanvasDetails, setUserCollabCanvasDetails] = useState<CanvasDetails[]>([]);
+
+
+async function getUserOwnedCanvasDetails(userId: number){
+     fetch(`/userownedcanvasdetails/user=${userId}`, {
+        method: "GET",
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const canvasObjects = data.parse();
+        canvasObjects.forEach((canvasObject: CanvasDetails) => setUserOwnedCanvasDetails([...userOwnedCanvasDetails, canvasObject]));
+    })
+    .catch((err) => {
+        console.log(err.message);
+    })
+}
+
+async function getUserCollabCanvasDetails(userId: number){
+     fetch(`/usercollabcanvasdetails/user=${userId}`, {
+        method: "GET",
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        const canvasObjects = data.parse();
+        canvasObjects.forEach((canvasObject: CanvasDetails) => setUserCollabCanvasDetails([...userCollabCanvasDetails, canvasObject]));
+    })
+    .catch((err) => {
+        console.log(err.message);
+    })
+}
+
+async function getUserDetails() {
+    fetch("/userdetails/user=1", {
+        method: "GET",
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        // don't use data until everything is hooked up
+        setUserDetails({
+            id: 23,
+            name: "Test Username",
+            colour: "#50d71e",
+            ownedCanvasIds:[],
+            collabCanvasIds: [],
+        })
+        getUserOwnedCanvasDetails(userDetails.id);
+        getUserCollabCanvasDetails(userDetails.id);
+    })
+    .catch((err) => {
+        console.log(err.message);
+    })
+}
+
+async function postUserDetails(){
+    fetch("/userdetails/user=1", {
+        method: "POST",
+        body: JSON.stringify(userDetails),
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+        }
+    })
+    .then((response) => {
+        if(response.ok) {
+            console.log("success")
+        }
+    })
+    .catch((err) => {
+        console.log(err.message);
+    })
+}
 
 function displayCanvasList(canvases: CanvasDetails[], canDeleteCanvases: boolean){
     return(
@@ -71,7 +123,7 @@ function YourCanvasesTab(){
                 <AddCanvas
                     open={showAddCanvasModal}
                     onClose={() => setShowAddCanvasModal(false)}
-                    username={userDetails.username}
+                    username={userDetails.name}
                 >
                 </AddCanvas>
                 <DeleteCanvas 
@@ -80,7 +132,7 @@ function YourCanvasesTab(){
                 </DeleteCanvas>
                 <div className="p-2">
                     Your Recent Canvases
-                    {displayCanvasList(userDetails.userCanvases, true)}
+                    {displayCanvasList(userOwnedCanvasDetails, true)}
                 </div>
             </>
         )
@@ -91,11 +143,15 @@ function YourCanvasesTab(){
                 <div>
                     <input  placeholder="Enter CanvasDetails Name here" type="text" className="bg-[#808287] rounded-sm text-white p-1"></input>
                 </div>
-                {displayCanvasList(userDetails.sharedCanavases, false)}
+                {displayCanvasList(userCollabCanvasDetails, false)}
             </div>
         )
     }
 }
+
+useEffect(() => {
+    getUserDetails();
+});
 
 return (
     <div className="grid grid-cols-4 h-screen text-[#3e4b60]">
@@ -105,11 +161,15 @@ return (
             </div>
            <div className="rounded p-2 mt-20">
                 <div>
-                    <img className="self-center" style= {{clipPath: "circle(40%)"}} src="/image_placeholder.jpg">
+                    <img className="self-center" style= {{clipPath: "circle(40%)", borderWidth: "5px", borderStyle: "solid", borderColor: userDetails.colour}} src="/image_placeholder.jpg">
                     </img>
                 </div>
                 <div className="text-center mt-5 text-white">
-                    Username Placeholder 
+                    {userDetails.name}
+                </div>
+                <div className={"text-center mt-5 text-[" + userDetails.colour + "]"}>
+                    Usercolour
+                    <EditSquareIcon onClick={() => postUserDetails()}></EditSquareIcon>
                 </div>
                  <div className=' absolute text-xs text-center text-white bottom-0 w-1/4 pr-2 pb-2'>
                     Copyright © 2026 - present. Lamis McDowall-Rose 
