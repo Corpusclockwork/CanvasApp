@@ -1,0 +1,64 @@
+################################CANVASES###############################
+GET http://localhost:5173/canvases/canvasid=1/canvascollaborators
+
+###
+GET http://localhost:5173/canvases/canvasid=1/canvasowner
+
+###
+GET http://localhost:5173/canvases/canvasid=1/canvasblob/
+
+###
+GET http://localhost:5173/canvases/canvasid=1
+
+###
+GET http://localhost:5173/canvases/canvasdetails/searchterm=hello
+
+###
+PUT http://localhost:5173/canvases/addusertocanvas/canvasid=1/userId=1
+###
+PUT http://localhost:5173/canvases/add
+{
+    "canvas":""
+}
+
+###
+GET http://localhost:5173//canvases/allcanvasdetails
+
+################################USERS#########################
+###
+GET http://localhost:5173/users//userId=1/userownedcanvasdetails
+
+###
+GET http://localhost:5173/users/userId=1/usercollabcanvasdetails
+
+###
+GET http://localhost:5173/users/userId=1/userdetails
+
+###
+POST http://localhost:5173/users/userId=1/userdetails
+{
+    "canvas":""
+}
+
+###
+GET http://localhost:5173/users/alluserdetails
+
+######################################OTHER#######################
+
+###
+POST http://localhost:5173/login
+content-type: application/json
+{
+    "username": "user1",
+    "password": "password"
+}
+
+###
+POST http://localhost:5173/signup
+content-type: application/json
+{
+    "username": "user1",
+    "password": "password"
+}
+
+

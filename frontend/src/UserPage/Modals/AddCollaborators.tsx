@@ -13,12 +13,12 @@ type AddCollaboratorsProps = {
     canvasId: number
 }
 function AddCollaborators ({open, onClose, canvasId}: AddCollaboratorsProps) {
-
     const [canvasCollaborators, setCanvasCollaborators] = useState<BasicUserDetails[]>([]);
     const [potentialCollaborators, setPotentialCollaborators] = useState<BasicUserDetails[]>([]);
+    const [searchPotentialCollaborators, setSearchPotentialCollaborators] = useState<string>("");
 
-    async function getPotentialCollaborators() {
-        fetch("/basicuserdetails", {
+    async function getAllPotentialCollaborators() {
+        fetch("/users/alluserdetails", {
             method: "GET",
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
@@ -28,6 +28,23 @@ function AddCollaborators ({open, onClose, canvasId}: AddCollaboratorsProps) {
         .then(data => {
             const userObjects = data.parse();
             userObjects.forEach((userObject: BasicUserDetails) => setPotentialCollaborators([...potentialCollaborators, userObject]));
+        })
+        .catch((err) => {
+            console.log(err.message);
+        })
+    }
+
+    async function searchForCollaborators(searchTerm : string) {
+        fetch(`/canvases/canvasdetails/searchterm=${searchTerm}`, {
+            method: "GET",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const userObjects = data.parse();
+            userObjects.forEach((userObject: BasicUserDetails) => setCanvasCollaborators([...canvasCollaborators, userObject]));
         })
         .catch((err) => {
             console.log(err.message);
@@ -53,8 +70,8 @@ function AddCollaborators ({open, onClose, canvasId}: AddCollaboratorsProps) {
 
 useEffect(() => {
     getCollaboratorsForCanvas(canvasId);
-    getPotentialCollaborators();
-}, [])
+    getAllPotentialCollaborators();
+}, [canvasId])
 
 return (
     <>
@@ -76,20 +93,24 @@ return (
           <CloseIcon />
         </IconButton>
         <DialogContent sx={{backgroundColor: '#D9D9D9', color:'#3e4b60'}}>
-            <ul> Results
-                <li>
-                    {potentialCollaborators.map((canvasCollaborator, index)=> (
-                                <li key={index}> {canvasCollaborator.username}</li>
-                    ))}
-                </li>
+            Add Canvas Collaborators: 
+             <input  
+                value={searchPotentialCollaborators}
+                onChange={e => {
+                    setSearchPotentialCollaborators(e.target.value); 
+                    if(e.target.value.length > 0){
+                        searchForCollaborators(e.target.value);
+                    }
+                }}
+                placeholder="Search for collaborators here" 
+                type="text" 
+                className="bg-[#808287] rounded-sm text-white p-1 m-1 m-2">
+            </input>
+            <ul className='overflow-y-scroll h-20 border-2 border-solid'> 
+                {potentialCollaborators.map((canvasCollaborator, index) => (
+                    <li onClick={() => setCanvasCollaborators([...canvasCollaborators, canvasCollaborator]) } className={'text-'+ canvasCollaborator.colour} key={index}> {canvasCollaborator.username}</li>
+                ))}
             </ul>
-             <ul>Canvas Collaborators <AddCircleOutlineIcon fontSize="small"></AddCircleOutlineIcon>
-                    <li>
-                        {canvasCollaborators.map((canvasCollaborator, index)=> (
-                            <li key={index}> {canvasCollaborator.username}</li>
-                        ))}
-                    </li>
-            </ul> 
         </DialogContent>
     </Dialog>
     </>

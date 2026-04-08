@@ -3,7 +3,6 @@ import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 import CloseIcon from '@mui/icons-material/Close';
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
 import { type CanvasDetails, type BasicUserDetails } from "../../Interfaces"
 import IconButton from '@mui/material/IconButton';
 import { useNavigate } from 'react-router-dom';
@@ -12,12 +11,11 @@ import { useNavigate } from 'react-router-dom';
 type AddCanvasProps = {
     open: boolean,
     onClose: () => void,
-    username: string
+    username: string,
+    userId: number
 }
 
-function AddCanvas ({ open, onClose, username}: AddCanvasProps) {
-        
-    
+function AddCanvas ({ open, onClose, username, userId}: AddCanvasProps) {
     const [canvasName, setCanvasName] = useState<string>("");
     const [canvasNameAlreadyExists, setCanvasNameAlreadyExists] = useState(false);
     const [canvasCollaborators, setCanvasCollaborators] = useState<BasicUserDetails[]>([]);
@@ -33,7 +31,7 @@ function AddCanvas ({ open, onClose, username}: AddCanvasProps) {
             thumbnail: '',
             dateCreated: new Date(),
             lastEdited: new Date(),
-            ownerId: 1,
+            ownerId: userId,
             collaboratorIds: []
         };
         fetch("/canvases/add", {
@@ -56,8 +54,8 @@ function AddCanvas ({ open, onClose, username}: AddCanvasProps) {
         })
     }
 
-    async function getPotentialCollaborators() {
-        fetch("/basicuserdetails", {
+    async function getAllPotentialCollaborators() {
+        fetch("/users/alluserdetails", {
             method: "GET",
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
@@ -73,9 +71,26 @@ function AddCanvas ({ open, onClose, username}: AddCanvasProps) {
         })
     }
 
+    async function searchForCollaborators(searchTerm : string) {
+        fetch(`/canvases/canvasdetails/searchterm=${searchTerm}`, {
+            method: "GET",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            const userObjects = data.parse();
+            userObjects.forEach((userObject: BasicUserDetails) => setCanvasCollaborators([...canvasCollaborators, userObject]));
+        })
+        .catch((err) => {
+            console.log(err.message);
+        })
+    }
+
     useEffect(()=> {
 
-    });
+    }, []);
 
 return (
 <>
@@ -121,7 +136,7 @@ return (
                         onChange={e => {
                             setSearchPotentialCollaborators(e.target.value); 
                             if(e.target.value.length > 0){
-                                getPotentialCollaborators();
+                                searchForCollaborators(e.target.value);
                             }
                         }}
                         placeholder="Search for collaborators here" 
@@ -139,7 +154,6 @@ return (
                         {canvasCollaborators.map((canvasCollaborator, index)=> (
                             <li key={index}> {canvasCollaborator.username}</li>
                         ))}
-                        <RemoveCircleOutlineIcon></RemoveCircleOutlineIcon>
                     </ul> 
                 </li>
                 <li className='m-2'><div className='font-bold'>Public Access</div>

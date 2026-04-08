@@ -1,32 +1,35 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, type MouseEvent } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Scrollbar } from 'react-scrollbars-custom';
 import { Tooltip } from 'react-tooltip'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AddCollaborators from '../UserPage/Modals/AddCollaborators';
 
-import { type CanvasDetails, type BasicUserDetails } from "../Interfaces";
+import { type CanvasDetails, type BasicUserDetails, type UserDetails } from "../Interfaces";
+import Sketch from '@uiw/react-color-sketch';
 
 function Canvas() {
-    const [canvasblob, setCanvasblob] = useState(new ArrayBuffer(1024*1024));
+    const [userDetails, setUserDetails] = useState<UserDetails>({} as UserDetails);
+    // const [canvasBlob, setCanvasBlob] = useState(new ArrayBuffer(1024*1024));
     const [canvasDetails, setCanvasDetails] = useState<CanvasDetails>({} as CanvasDetails);
 
     const [canvasOwner, setCanvasOwner] = useState<string>("");
     const [canvasCollaborators, setCanvasCollaborators] = useState<BasicUserDetails[]>([]);
     
-    const canvasObjectId = useRef<HTMLCanvasElement>(null);
-    const [leftDropdown, setLeftDropdown] = useState(false);
-    const [rightDropdown, setRightDropdown] = useState(false);
-    const [showAddCollaboratorsModal, setShowAddCollaboratorsModal] = useState(false);
+    const [leftDropdown, setLeftDropdown] = useState<boolean>(false);
+    const [rightDropdown, setRightDropdown] = useState<boolean>(false);
+    const [showAddCollaboratorsModal, setShowAddCollaboratorsModal] = useState<boolean>(false);
 
-    // const colorsList = ["black", "red", "green", "blue", "white"];
+    const [brushColour, setBrushColour]= useState<string>("#c0392b");
+    const [previousMousePosition, setPreviousMousePosition] = useState<[number, number]>([0,0]);
+    const [mousePosition, setMousePosition] = useState<[number, number]>([0,0]);
+    const [canvasBlobUrl, setCanvasBlobUrl] = useState(`/canvasblob/${canvasDetails.id}`);
 
-    // var imageData = new ImageData(new Uint8ClampedArray(canvasblob), 1024, 1024);
-    // var ctx = canvasObjectId.getContext("2d");
-    // ctx?.putImageData(imageData, 0, 0);
-
+    const canvasRef  = useRef<HTMLCanvasElement>(null);
+    const ctx = canvasRef.current === null ? null: canvasRef.current.getContext('2d');
+    
     async function getCollaboratorsForCanvas(canvasId: number) {
-        fetch(`/canvasid=${canvasId}/canvascollaborators`, {
+        fetch(`/canvases/canvasid=${canvasId}/canvascollaborators`, {
             method: "GET",
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
@@ -38,12 +41,12 @@ function Canvas() {
             userObjects.forEach((userObject: BasicUserDetails) => setCanvasCollaborators([...canvasCollaborators, userObject]));
         })
         .catch((err) => {
-            console.log(err.message);
+            // console.log(err.message);
         })
     }
 
     async function getOwnerForCanvasName(canvasId: number) {
-        fetch(`/canvasid=${canvasId}/canvasowner`, {
+        fetch(`/canvases/canvasid=${canvasId}/canvasowner`, {
             method: "GET",
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
@@ -54,22 +57,22 @@ function Canvas() {
             setCanvasOwner(data);
         })
         .catch((err) => {
-            console.log(err.message);
+            // console.log(err.message);
         })
     }
 
-    const setCanvasBlob = async () => {
+    const getCanvasBlob = async () => {
         try {
-            const response =  await (await fetch('/canvasblob/{id}')).json()
-            setCanvasblob(response);
-            console.log(canvasblob);
+            const response =  await (await fetch(`/canvasblob/${canvasDetails.id}`)).json()
+            // setCanvasBlob(response);
+            // console.log(canvasBlob);
         } catch {
 
         }
     }
 
     async function getCanvasDetails(){
-        fetch("/canvasId=1", {
+        fetch(`/canvases/canvasId=${canvasDetails.id}`, {
             method: "GET",
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
@@ -92,14 +95,57 @@ function Canvas() {
             getOwnerForCanvasName(canvasDetails.id);
         })
         .catch((err) => {
-            console.log(err.message);
+            // console.log(err.message);
         })
     }
 
+    function draw(event : MouseEvent) {
+        // if the user isn't pressing down, don't draw
+        // if(event.buttons == 0){
+        //     console.log(event);
+        // }
+        if (event.buttons !== 1) return; 
+        
+        if(ctx){
+            ctx.beginPath(); 
+
+            ctx.lineWidth = 10;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = `${brushColour}`;
+            // ctx.fillStyle = `${brushColour}`;
+            // console.log(ctx);
+
+            // console.log(event.clientX);
+            // console.log(event.clientY);
+
+            ctx.moveTo(previousMousePosition[0], previousMousePosition[1]);
+            setMousePosition([event.clientX, event.clientY]);
+            ctx.lineTo(mousePosition[0], mousePosition[1]); 
+            setPreviousMousePosition(mousePosition);
+            // console.log("here");
+            // ctx.moveTo(0, 0); 
+            // setMousePosition([event.clientX, event.clientY]);
+            // ctx.lineTo(mousePosition[0], mousePosition[1]); 
+            // ctx.lineTo(100, 100); 
+
+            ctx.stroke(); 
+        }
+    }
+
     useEffect(() => {
-        getCanvasDetails();
-        setCanvasBlob();
-    }, [])
+        // getCanvasDetails();
+        // getCanvasBlob();
+        // const connection = createConnection(userDetails.id, canvasDetails.id);
+        // const connection ;
+        // connection.connect();
+        // return () => {
+        //     connection.disconnect();
+        // }
+        console.log("hi");
+        console.log(previousMousePosition);    
+        console.log(mousePosition);
+        
+    }, [mousePosition, brushColour])
     
     return (
         <div>
@@ -133,7 +179,13 @@ function Canvas() {
                 </div>
             }
             <Scrollbar className='bg-white z-1 top-0 left-0' style={{width:"100vw", height:"100vh", maxWidth:1024, maxHeight:1024}}>
-                <canvas ref={canvasObjectId} className='CanvasObject w-1024 h-1024'>
+                <canvas 
+                    ref={canvasRef}
+                    className='w-256 h-256'
+                    onMouseMove={(e)=> draw(e)}
+                    onMouseDown={(e)=> setMousePosition([e.clientX, e.clientY])}
+                    onMouseEnter={(e)=>setMousePosition([e.clientX, e.clientY])}
+                >
                 </canvas>
             </Scrollbar>
             {!rightDropdown && 
@@ -151,26 +203,32 @@ function Canvas() {
                             <Tooltip id="right-close-tooltip">
                             </Tooltip>
                         </li>
-                        <li className='hover:bg-gray-600 rounded-sm p-1'>Colours</li>
+                        <li className='rounded-sm p-1'>
+                            Colours
+                            <Sketch
+                                color={brushColour}
+                                onChange={(color) => {setBrushColour(color.hex);}}
+                            />
+
+                        </li>
                         <li className='hover:bg-gray-600 rounded-sm p-1'>
                             List of Collaborators
                             <ul>
                                 {
                                     canvasCollaborators.map((canvasCollaborator, index) => (
-                                        <li className={"hover:bg-gray-700 text-$["+ canvasCollaborator.colour + "]"} key={index}>
+                                        <li className={"hover:bg-gray-700 text-["+ canvasCollaborator.colour + "]"} key={index}>
                                             {canvasCollaborator.username}
                                         </li>
                                     ))
                                 }
                             </ul>
                         </li>
-                        <li className='hover:bg-gray-600 rounded-sm p-1'>Add a Collaborator <AddCircleOutlineIcon></AddCircleOutlineIcon></li>
+                        <li className='hover:bg-gray-600 rounded-sm p-1' onClick={()=> setShowAddCollaboratorsModal(true)}>Add a Collaborator <AddCircleOutlineIcon></AddCircleOutlineIcon></li>
                         <AddCollaborators
                             open={showAddCollaboratorsModal}
                             onClose={() => setShowAddCollaboratorsModal(false)}
                             canvasId={canvasDetails.id}
-                        >
-                            
+                        > 
                         </AddCollaborators>
                         <li className='hover:bg-gray-600 rounded-sm p-1'>Canvas owner
                             <div className="hover:bg-gray-700">

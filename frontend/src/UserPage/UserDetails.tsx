@@ -6,10 +6,12 @@ import DeleteCanvas from "./Modals/DeleteCanvas";
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import EditSquareIcon from '@mui/icons-material/EditSquare';
 import { type UserDetails, type CanvasDetails } from "../Interfaces";
+import JoinCanvas from "./Modals/JoinCanvas";
 
 function UserDetails() {
 
 const [showAddCanvasModal, setShowAddCanvasModal] = useState<boolean>(false);
+const [showJoinCanvasModal, setShowJoinCanvasModal] = useState<boolean>(false);
 const [selectedCanvas, setSelectedCanvas] = useState<string>(""); // might/ will have the change the type at some point
 const [showDeleteCanvasModal, setShowDeleteCanvasModal] = useState<boolean>(false);
 const [toggleTab, setToggleTab] = useState<boolean>(false);
@@ -20,7 +22,7 @@ const [userCollabCanvasDetails, setUserCollabCanvasDetails] = useState<CanvasDet
 
 
 async function getUserOwnedCanvasDetails(userId: number){
-     fetch(`/userownedcanvasdetails/user=${userId}`, {
+     fetch(`/users/userId=${userId}/userownedcanvasdetails`, {
         method: "GET",
         headers: {
             'Content-type': 'application/json; charset=UTF-8',
@@ -37,7 +39,7 @@ async function getUserOwnedCanvasDetails(userId: number){
 }
 
 async function getUserCollabCanvasDetails(userId: number){
-     fetch(`/usercollabcanvasdetails/user=${userId}`, {
+     fetch(`/users/userId=${userId}/usercollabcanvasdetails`, {
         method: "GET",
         headers: {
             'Content-type': 'application/json; charset=UTF-8',
@@ -53,8 +55,8 @@ async function getUserCollabCanvasDetails(userId: number){
     })
 }
 
-async function getUserDetails() {
-    fetch("/userdetails/user=1", {
+async function getUserDetails(userId: number) {
+    fetch(`/users/userId=${userId}/userdetails`, {
         method: "GET",
         headers: {
             'Content-type': 'application/json; charset=UTF-8',
@@ -78,8 +80,8 @@ async function getUserDetails() {
     })
 }
 
-async function postUserDetails(){
-    fetch("/userdetails/user=1", {
+async function postUserDetails(userId: number){
+    fetch(`/users/userId=${userId}/userdetails`, {
         method: "POST",
         body: JSON.stringify(userDetails),
         headers: {
@@ -116,33 +118,38 @@ function displayCanvasList(canvases: CanvasDetails[], canDeleteCanvases: boolean
 function YourCanvasesTab(){
     if (!toggleTab) {
         return (
-            <>
-                <button className="flex"  onClick={()=> setShowAddCanvasModal(true)}>
-                    <div className="p-2">Create a new canvas <AddCircleOutlineIcon></AddCircleOutlineIcon> </div>            
-                </button>
+            <div className="p-2 flex">
                 <AddCanvas
                     open={showAddCanvasModal}
                     onClose={() => setShowAddCanvasModal(false)}
                     username={userDetails.name}
+                    userId={userDetails.id}
                 >
                 </AddCanvas>
                 <DeleteCanvas 
                     showDeleteCanvasModal={showDeleteCanvasModal} 
                     canvasName={selectedCanvas}>
                 </DeleteCanvas>
-                <div className="p-2">
-                    Your Recent Canvases
-                    {displayCanvasList(userOwnedCanvasDetails, true)}
-                </div>
-            </>
+                <button className="flex"  onClick={()=> setShowAddCanvasModal(true)}>
+                    <div className="p-2">Create a new canvas <AddCircleOutlineIcon></AddCircleOutlineIcon> </div>            
+                </button>
+                {displayCanvasList(userOwnedCanvasDetails, true)}
+            </div>
+
         )
     } else {
         return ( 
             <div className="p-2 flex">
-                <div className="pr-4 py-1">Search for new canvases to join: </div>
-                <div>
-                    <input  placeholder="Enter CanvasDetails Name here" type="text" className="bg-[#808287] rounded-sm text-white p-1"></input>
-                </div>
+                <JoinCanvas
+                    open={showJoinCanvasModal}
+                    onClose={() => setShowJoinCanvasModal(false)}
+                    username={userDetails.name}
+                    userId={userDetails.id}
+                    >
+                </JoinCanvas>
+                <button className="flex"  onClick={()=> setShowJoinCanvasModal(true)}>
+                    <div className="p-2">Search for new canvases to join: <AddCircleOutlineIcon></AddCircleOutlineIcon> </div>            
+                </button>
                 {displayCanvasList(userCollabCanvasDetails, false)}
             </div>
         )
@@ -150,8 +157,8 @@ function YourCanvasesTab(){
 }
 
 useEffect(() => {
-    getUserDetails();
-});
+    getUserDetails(userDetails.id);
+}, [userDetails]);
 
 return (
     <div className="grid grid-cols-4 h-screen text-[#3e4b60]">
@@ -169,7 +176,7 @@ return (
                 </div>
                 <div className={"text-center mt-5 text-[" + userDetails.colour + "]"}>
                     Usercolour
-                    <EditSquareIcon onClick={() => postUserDetails()}></EditSquareIcon>
+                    <EditSquareIcon onClick={() => postUserDetails(userDetails.id)}></EditSquareIcon>
                 </div>
                  <div className=' absolute text-xs text-center text-white bottom-0 w-1/4 pr-2 pb-2'>
                     Copyright © 2026 - present. Lamis McDowall-Rose 
