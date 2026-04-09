@@ -28,6 +28,7 @@ function Canvas() {
     const canvasRef  = useRef<HTMLCanvasElement>(null);
     const ctx = canvasRef.current === null ? null: canvasRef.current.getContext('2d');
     
+    
     async function getCollaboratorsForCanvas(canvasId: number) {
         fetch(`/canvases/canvasid=${canvasId}/canvascollaborators`, {
             method: "GET",
@@ -99,34 +100,29 @@ function Canvas() {
         })
     }
 
+    function getCanvasPosition(eventX: number, eventY: number) {
+        var rect = canvasRef.current === null ? null: canvasRef.current.getBoundingClientRect();
+        return [eventX - rect!.left, eventY - rect!.top] as [number, number];
+    }
+
     function draw(event : MouseEvent) {
-        // if the user isn't pressing down, don't draw
-        // if(event.buttons == 0){
-        //     console.log(event);
-        // }
-        if (event.buttons !== 1) return; 
+        if (event.buttons !== 1) {
+            setMousePosition([event.clientX, event.clientY]);
+            setPreviousMousePosition(mousePosition);
+            return; 
+        }
         
         if(ctx){
             ctx.beginPath(); 
 
-            ctx.lineWidth = 10;
+            ctx.lineWidth = 5;
             ctx.lineCap = 'round';
             ctx.strokeStyle = `${brushColour}`;
-            // ctx.fillStyle = `${brushColour}`;
-            // console.log(ctx);
-
-            // console.log(event.clientX);
-            // console.log(event.clientY);
 
             ctx.moveTo(previousMousePosition[0], previousMousePosition[1]);
             setMousePosition([event.clientX, event.clientY]);
             ctx.lineTo(mousePosition[0], mousePosition[1]); 
             setPreviousMousePosition(mousePosition);
-            // console.log("here");
-            // ctx.moveTo(0, 0); 
-            // setMousePosition([event.clientX, event.clientY]);
-            // ctx.lineTo(mousePosition[0], mousePosition[1]); 
-            // ctx.lineTo(100, 100); 
 
             ctx.stroke(); 
         }
@@ -141,9 +137,7 @@ function Canvas() {
         // return () => {
         //     connection.disconnect();
         // }
-        console.log("hi");
-        console.log(previousMousePosition);    
-        console.log(mousePosition);
+        //TODO: const imageData = context.getImageData(0, 0, 1, 1); for the thumbnail 
         
     }, [mousePosition, brushColour])
     
@@ -181,10 +175,17 @@ function Canvas() {
             <Scrollbar className='bg-white z-1 top-0 left-0' style={{width:"100vw", height:"100vh", maxWidth:1024, maxHeight:1024}}>
                 <canvas 
                     ref={canvasRef}
-                    className='w-256 h-256'
+                    style={{width:"1024px", height:"1024px"}}
                     onMouseMove={(e)=> draw(e)}
-                    onMouseDown={(e)=> setMousePosition([e.clientX, e.clientY])}
-                    onMouseEnter={(e)=>setMousePosition([e.clientX, e.clientY])}
+                    onMouseDown={(e)=> {
+                        const mouse : [number, number] = getCanvasPosition(mousePosition[0], mousePosition[1])
+                        setPreviousMousePosition(mouse); 
+                        setMousePosition([e.clientX, e.clientY]);
+                    }}
+                    onMouseEnter={(e)=> {
+                        setPreviousMousePosition([mousePosition[0], mousePosition[1]]); 
+                        setMousePosition([e.clientX, e.clientY]);
+                    }}
                 >
                 </canvas>
             </Scrollbar>
