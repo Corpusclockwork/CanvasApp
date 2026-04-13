@@ -14,7 +14,11 @@ GET http://localhost:5173/canvases/canvasid=1
 GET http://localhost:5173/canvases/canvasdetails/searchterm=hello
 
 ###
+PUT http://localhost:5173/canvases/setcanvasthumbnail/canvasId=1
+
+###
 PUT http://localhost:5173/canvases/addusertocanvas/canvasid=1/userId=1
+
 ###
 PUT http://localhost:5173/canvases/add
 {

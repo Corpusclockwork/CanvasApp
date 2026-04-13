@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef, type MouseEvent } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Scrollbar } from 'react-scrollbars-custom';
+
 import { Tooltip } from 'react-tooltip'
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
 import AddCollaborators from '../UserPage/Modals/AddCollaborators';
 
 import { type CanvasDetails, type BasicUserDetails, type UserDetails } from "../Interfaces";
 import Sketch from '@uiw/react-color-sketch';
-import type { ScrollState } from 'react-scrollbars-custom/dist/types/types';
+
 
 function Canvas() {
     const [userDetails, setUserDetails] = useState<UserDetails>({} as UserDetails);
@@ -22,8 +22,12 @@ function Canvas() {
     const [showAddCollaboratorsModal, setShowAddCollaboratorsModal] = useState<boolean>(false);
 
     const [brushColour, setBrushColour]= useState<string>("#c0392b");
+    const [lineWidth, setLineWidth] = useState<number>(10);
+
     const [previousMousePosition, setPreviousMousePosition] = useState<[number, number]>([0,0]);
     const [mousePosition, setMousePosition] = useState<[number, number]>([0,0]);
+    const [scrollPosition, setScrollPosition] = useState<[number, number]>([0,0]);
+
     const [canvasBlobUrl, setCanvasBlobUrl] = useState(`/canvasblob/${canvasDetails.id}`);
 
     const canvasRef  = useRef<HTMLCanvasElement>(null);
@@ -86,6 +90,7 @@ function Canvas() {
             setCanvasDetails({
                 id: canvasObject.id,
                 name: canvasObject.name,
+                size: canvasObject.size,
                 thumbnail: canvasObject.thumbnail,
                 dateCreated: canvasObject.dateCreated,
                 lastEdited: canvasObject.lastEdited,
@@ -101,6 +106,20 @@ function Canvas() {
         })
     }
 
+    async function setCanvasThumbail(){
+        fetch(`/canvases/setcanvasthumbnail/canvasId=${canvasDetails.id}`, {
+            method: "PUT",
+            headers: {
+                'Content-type': 'application/json; charset=UTF-8',
+            },
+            body: ctx!.getImageData(0, 0, 1024, 1024).data // is a Uint8ClampedArray which is a subclass of the hidden TypedArray class.
+        })
+        .then(response => response.ok)
+        .catch((err) => {
+            // console.log(err.message);
+        })
+    }
+
     function draw(event : MouseEvent) {
         if (event.buttons !== 1) {
             setMousePosition([event.clientX, event.clientY]);
@@ -111,20 +130,18 @@ function Canvas() {
         if(ctx){
             ctx.beginPath(); 
 
-            ctx.lineWidth = 5;
+            ctx.lineWidth = lineWidth;
             ctx.lineCap = 'round';
             ctx.strokeStyle = `${brushColour}`;
 
-            ctx.moveTo(previousMousePosition[0], previousMousePosition[1]);
+            ctx.moveTo(previousMousePosition[0] + scrollPosition[0], previousMousePosition[1] + scrollPosition[1]);
             setMousePosition([event.clientX, event.clientY]);
-            ctx.lineTo(mousePosition[0], mousePosition[1]); 
+            ctx.lineTo(mousePosition[0] + scrollPosition[0], mousePosition[1] + scrollPosition[1]); 
             setPreviousMousePosition(mousePosition);
-            console.log("positions");
-            console.log(previousMousePosition);
-            console.log(mousePosition);
             ctx.stroke(); 
         }
     }
+   
 
     useEffect(() => {
         // getCanvasDetails();
@@ -135,7 +152,6 @@ function Canvas() {
         // return () => {
         //     connection.disconnect();
         // }
-        //TODO: const imageData = context.getImageData(0, 0, 1, 1); for the thumbnail 
         
     }, [mousePosition, brushColour])
     
@@ -170,11 +186,15 @@ function Canvas() {
                     </ul>
                 </div>
             }
-            <Scrollbar className='bg-white z-1 top-0 left-0' style={{width:"100vw", height:"100vh", maxWidth:1024, maxHeight:1024}}>
+            <div 
+                className='overflow-scroll absolute w-screen h-screen max-w-1024 max-y-1024' 
+                onScroll={(event: React.UIEvent<HTMLDivElement>) => setScrollPosition([event.currentTarget.scrollLeft, event.currentTarget.scrollTop])} 
+            >
                 <canvas 
                     ref={canvasRef}
                     width={1024}
                     height={1024}
+                    style={{backgroundColor:"white"}}
                     onMouseMove={(e)=> draw(e)}
                     onMouseDown={(e)=> {
                         setPreviousMousePosition([mousePosition[0], mousePosition[1]]); 
@@ -186,7 +206,7 @@ function Canvas() {
                     }}
                 >
                 </canvas>
-            </Scrollbar>
+            </div>
             {!rightDropdown && 
                 <div className='w-10 h-10  bg-gray-500 top-0 right-0 z-2 absolute rounded-bl-lg' onClick={()=> setRightDropdown(!rightDropdown)}>
                     <p data-tooltip-id="right-open-tooltip" data-tooltip-content="Open canvas options dropdown" className='text-3xl text-center align-middle'>&#8690;</p>
@@ -210,6 +230,17 @@ function Canvas() {
                             />
 
                         </li>
+                        <li> Line Width 
+                            <input
+                                value={lineWidth}
+                                onChange={e => setLineWidth(Number(e.target.value))}
+                                placeholder="Enter Username here" 
+                                type="number" 
+                                min={1}
+                                max={1000}
+                                className="bg-[#808287] rounded-sm text-white p-1 m-2 w-20"
+                            >
+                            </input> </li>
                         <li className='hover:bg-gray-600 rounded-sm p-1'>
                             List of Collaborators
                             <ul>

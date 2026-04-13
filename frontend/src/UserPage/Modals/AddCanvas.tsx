@@ -17,6 +17,7 @@ type AddCanvasProps = {
 
 function AddCanvas ({ open, onClose, username, userId}: AddCanvasProps) {
     const [canvasName, setCanvasName] = useState<string>("");
+    const [canvasSize, setCanvasSize] = useState<[number, number]>([1024,1024]);
     const [canvasNameAlreadyExists, setCanvasNameAlreadyExists] = useState(false);
     const [canvasCollaborators, setCanvasCollaborators] = useState<BasicUserDetails[]>([]);
     const [potentialCollaborators, setPotentialCollaborators] = useState<BasicUserDetails[]>([]);
@@ -25,9 +26,10 @@ function AddCanvas ({ open, onClose, username, userId}: AddCanvasProps) {
     let navigate = useNavigate();
 
     async function createCanvas() {
-        const canvasDetailsToPut :CanvasDetails = {
+        const canvasDetailsToPut : CanvasDetails = {
             id: -1,
-            name: '',
+            name: canvasName,
+            size: canvasSize,
             thumbnail: '',
             dateCreated: new Date(),
             lastEdited: new Date(),
@@ -88,6 +90,10 @@ function AddCanvas ({ open, onClose, username, userId}: AddCanvasProps) {
         })
     }
 
+    function disableCreateCanvas(){
+        return canvasName === "" || canvasSize[0] < 1 || canvasSize[1] < 1 || canvasSize[0] > 4096 || canvasSize[1] > 4096 || !canvasSize[0] || !canvasSize[1] ;
+    }
+
     useEffect(()=> {
 
     }, []);
@@ -126,7 +132,28 @@ return (
                         className="bg-[#808287] rounded-sm text-white p-1 m-1 mx-3">
                     </input>
                 </li>
-                <li className='flex m-2' ><div className='font-bold mr-2'>Canvas Size: </div>1024 x 1024</li>
+                <li className='flex m-2' >
+                    <div className='font-bold mr-2'>Canvas Size: </div>     
+                    <input  
+                        value={canvasSize[0]}
+                        onChange={e => {setCanvasSize([Number.parseInt(e.target.value), canvasSize[1]])}}
+                        placeholder="Enter Canvas Name here" 
+                        type="number" 
+                        min={1}
+                        max={4096}
+                        className="bg-[#808287] rounded-sm text-white text-xs w-15 px-1 mx-2">
+                    </input>
+                    x
+                    <input  
+                        value={canvasSize[1]}
+                        onChange={e => {setCanvasSize([canvasSize[0], Number.parseInt(e.target.value)])}}
+                        placeholder="Enter Canvas Name here" 
+                        type="number"
+                        min={1}
+                        max={4096}
+                        className="bg-[#808287] rounded-sm text-white text-xs w-15 px-1 mx-2">
+                    </input>
+                </li>
                 <li 
                     className='bg-[#808287] rounded-sm p-2 m-2 text-white' 
                 > 
@@ -141,7 +168,7 @@ return (
                         }}
                         placeholder="Search for collaborators here" 
                         type="text" 
-                        className="bg-[#808287] rounded-sm text-white p-1 m-1 m-2">
+                        className="bg-[#808287] rounded-sm text-white p-1 m-2">
                     </input>
                     <ul className='overflow-y-scroll h-20 border-2 border-solid'> 
                         {potentialCollaborators.map((canvasCollaborator, index) => (
@@ -164,14 +191,20 @@ return (
             {  !canvasName &&
                 <div className='text-xs text-center'> Enter a username before clicking create</div>
             }
+            {  (canvasSize[0] < 1 || canvasSize[1] < 1) &&
+                <div className='text-xs text-center'> Neither canvas width nor canvas height can be zero</div>
+            }
+            {  (canvasSize[0] > 4096 || canvasSize[1] > 4096) &&
+                <div className='text-xs text-center'> Neither canvas width nor canvas height can exceed 4096</div>
+            }
             { canvasNameAlreadyExists &&
                 <div className='text-[#fc0000] text-xs text-center'> You have already used this canvas name elewhere</div>
             }
             <div className='flex justify-end'>
                 <button 
-                    disabled={canvasName === ""}
+                    disabled={disableCreateCanvas()}
                     onClick={()=> createCanvas()} 
-                    className={(canvasName === "") ? "bg-[#808287] text-[#3e4b60] p-2 m-2 rounded-sm" :'cursor-pointer bg-[#808287] hover:bg-[#808287] text-white hover:text-[#3e4b60] p-2 m-2 rounded-sm'}
+                    className={(disableCreateCanvas()) ? "bg-[#808287] text-[#3e4b60] p-2 m-2 rounded-sm" :'cursor-pointer bg-[#808287] hover:bg-[#808287] text-white hover:text-[#3e4b60] p-2 m-2 rounded-sm'}
                 >
                     Create Canvas
                 </button>

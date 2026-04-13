@@ -9,6 +9,7 @@ export interface UserDetails {
 export interface CanvasDetails {
     id: number;
     name: string;
+    size: [number, number],
     thumbnail: string;
     dateCreated: Date;
     lastEdited: Date;
