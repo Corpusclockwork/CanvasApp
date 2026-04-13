@@ -7,6 +7,7 @@ import AddCollaborators from '../UserPage/Modals/AddCollaborators';
 
 import { type CanvasDetails, type BasicUserDetails, type UserDetails } from "../Interfaces";
 import Sketch from '@uiw/react-color-sketch';
+import type { ScrollState } from 'react-scrollbars-custom/dist/types/types';
 
 function Canvas() {
     const [userDetails, setUserDetails] = useState<UserDetails>({} as UserDetails);
@@ -100,11 +101,6 @@ function Canvas() {
         })
     }
 
-    function getCanvasPosition(eventX: number, eventY: number) {
-        var rect = canvasRef.current === null ? null: canvasRef.current.getBoundingClientRect();
-        return [eventX - rect!.left, eventY - rect!.top] as [number, number];
-    }
-
     function draw(event : MouseEvent) {
         if (event.buttons !== 1) {
             setMousePosition([event.clientX, event.clientY]);
@@ -123,7 +119,9 @@ function Canvas() {
             setMousePosition([event.clientX, event.clientY]);
             ctx.lineTo(mousePosition[0], mousePosition[1]); 
             setPreviousMousePosition(mousePosition);
-
+            console.log("positions");
+            console.log(previousMousePosition);
+            console.log(mousePosition);
             ctx.stroke(); 
         }
     }
@@ -175,11 +173,11 @@ function Canvas() {
             <Scrollbar className='bg-white z-1 top-0 left-0' style={{width:"100vw", height:"100vh", maxWidth:1024, maxHeight:1024}}>
                 <canvas 
                     ref={canvasRef}
-                    style={{width:"1024px", height:"1024px"}}
+                    width={1024}
+                    height={1024}
                     onMouseMove={(e)=> draw(e)}
                     onMouseDown={(e)=> {
-                        const mouse : [number, number] = getCanvasPosition(mousePosition[0], mousePosition[1])
-                        setPreviousMousePosition(mouse); 
+                        setPreviousMousePosition([mousePosition[0], mousePosition[1]]); 
                         setMousePosition([e.clientX, e.clientY]);
                     }}
                     onMouseEnter={(e)=> {
